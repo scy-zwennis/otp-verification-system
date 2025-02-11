@@ -1,0 +1,6 @@
+@OtpVerification.Api_HostAddress = http://localhost:5117
+
+GET {{OtpVerification.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

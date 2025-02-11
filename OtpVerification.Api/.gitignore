@@ -1,0 +1,6 @@
+## Build artefacts
+/bin/
+/obj/
+
+## Development appsettings
+appsettings.Development.json
