@@ -11,21 +11,10 @@ public class OtpDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        builder.Entity<User>(entity => {
-            entity.ToTable("Users");
-
-            entity.HasKey(e => e.UserId);
-
-            entity.HasIndex(e => e.Email).IsUnique();
-
-            entity.Property(e => e.Email)
-                .HasMaxLength(256)
-                .IsRequired();
-
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()");
-        });
+        builder.Entity<User>(User.ConfigureModel);
+        builder.Entity<OneTimePin>(OneTimePin.ConfigureModel);
     }
 
     public required DbSet<User> Users { get; set; }
+    public required DbSet<OneTimePin> OneTimePins { get; set; }
 }

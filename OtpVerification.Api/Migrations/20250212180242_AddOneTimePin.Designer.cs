@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OtpVerification.Api.Data;
@@ -11,9 +12,11 @@ using OtpVerification.Api.Data;
 namespace OtpVerification.Api.Migrations
 {
     [DbContext(typeof(OtpDbContext))]
-    partial class OtpDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250212180242_AddOneTimePin")]
+    partial class AddOneTimePin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
