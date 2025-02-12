@@ -1,6 +1,14 @@
+## Visual code settings
+.vscode/
+
 ## Build artefacts
 /bin/
 /obj/
 
 ## Development appsettings
 appsettings.Development.json
+
+## NuGet packages
+**/packages/*
+*.nupkg
+*.snupkg
