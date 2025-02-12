@@ -1,19 +1,25 @@
 using System.ComponentModel.DataAnnotations;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using FluentResults;
 using OtpVerification.Api.Data;
 using OtpVerification.Api.Data.Entities;
 using OtpVerification.Api.Services.Interfaces;
+using OtpVerification.Api.Configuration;
 
 namespace OtpVerification.Api.Services;
 
-public class OneTimePinService(OtpDbContext context) : IOneTimePinService
+public class OneTimePinService : IOneTimePinService
 {
-    private const int OTP_EXPIRES_IN_SECONDS = 30;
-    private const int OTP_REISSUE_MINUTES = 5;
-    private const int OTP_REISSUE_MAX = 3;
-    private const int OTP_PER_HOUR_MAX = 100;
+    private readonly OtpDbContext context;
+    private readonly OtpSettings otpSettings;
+
+    public OneTimePinService(OtpDbContext context, IOptions<OtpSettings> otpSettings)
+    {
+        this.context = context;
+        this.otpSettings = otpSettings.Value;
+    }
 
     public async Task<Result<string>> CreateOneTimePinAsync(string email)
     {
@@ -90,7 +96,7 @@ public class OneTimePinService(OtpDbContext context) : IOneTimePinService
     {
         using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-        var otp = OneTimePin.Create(user.UserId, code, OTP_EXPIRES_IN_SECONDS);
+        var otp = OneTimePin.Create(user.UserId, code, otpSettings.ExpiresInSeconds);
         context.OneTimePins.Add(otp);
         await context.SaveChangesAsync();
 
@@ -110,7 +116,7 @@ public class OneTimePinService(OtpDbContext context) : IOneTimePinService
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
-        var otp = OneTimePin.Create(user.UserId, code, OTP_EXPIRES_IN_SECONDS);
+        var otp = OneTimePin.Create(user.UserId, code, otpSettings.ExpiresInSeconds);
         context.OneTimePins.Add(otp);
         await context.SaveChangesAsync();
 
@@ -132,7 +138,7 @@ public class OneTimePinService(OtpDbContext context) : IOneTimePinService
     private async Task ReissueOtpAsync(OneTimePin oneTimePin)
     {
         oneTimePin.RequestCount += 1;
-        oneTimePin.SetExpiryDt(OTP_EXPIRES_IN_SECONDS);
+        oneTimePin.SetExpiryDt(otpSettings.ExpiresInSeconds);
         await context.SaveChangesAsync();
     }
 
@@ -140,20 +146,20 @@ public class OneTimePinService(OtpDbContext context) : IOneTimePinService
         if (otp is null || otp.IsUsed || otp.IsExpired)
             return false;            
 
-        if (otp.RequestCount >= OTP_REISSUE_MAX)
+        if (otp.RequestCount >= otpSettings.AllowedReissueRequests)
             return false;
 
         var timespanSinceCreated = DateTime.UtcNow.Subtract(otp.CreatedAt);
-        return timespanSinceCreated.Minutes < OTP_REISSUE_MINUTES;
+        return timespanSinceCreated.Minutes < otpSettings.AllowedReissueMinutes;
     }
 
     private bool HasReachedMaxHourlyRequest(IEnumerable<OneTimePin> recentOtps)
     {
         var requestsInLastHour = recentOtps.Where(otp => otp.CreatedAt > DateTime.UtcNow.AddHours(-1)).Count();
-        return requestsInLastHour >= OTP_PER_HOUR_MAX;
+        return requestsInLastHour >= otpSettings.RequestsPerHour;
     }
 
-    private bool IsValidEmail(string email)
+    private static bool IsValidEmail(string email)
     {
         return new EmailAddressAttribute().IsValid(email.Trim());
     }
