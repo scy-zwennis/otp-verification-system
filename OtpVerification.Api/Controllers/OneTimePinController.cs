@@ -31,6 +31,20 @@ public class OneTimePinController(IOneTimePinService oneTimePinService, IEmailin
         return Ok();
     }
 
+    [HttpPut("Validate")]
+    public async Task<IActionResult> Validate(VerifyOtpModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await oneTimePinService.ValidateOneTimePinAsync(model.Email, model.Code);
+        return result.IsSuccess
+            ? Ok()
+            : BadRequest(result.Errors);
+    }
+
     private string CreateOneTimePinMessage(string code)
     {
         return $"Your OTP is {code}";

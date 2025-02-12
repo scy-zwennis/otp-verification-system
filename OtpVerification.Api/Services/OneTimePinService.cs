@@ -21,7 +21,7 @@ public class OneTimePinService(OtpDbContext context) : IOneTimePinService
         {
             if (!IsValidEmail(email))
             {
-                return Result.Fail("Provided email is not valid, please enter a valid email");
+                return Result.Fail("Provided email is not valid, please provide a valid email");
             }
 
             var user = await context.Users.Include(u => u.LastIssuedOtp).SingleOrDefaultAsync(u => u.Email == email);
@@ -54,6 +54,36 @@ public class OneTimePinService(OtpDbContext context) : IOneTimePinService
         {
             return Result.Fail($"Failed to create OTP, please try again later.");
         }
+    }
+
+    public async Task<Result> ValidateOneTimePinAsync(string email, string code)
+    {
+        if (!IsValidEmail(email))
+        {
+            return Result.Fail("Provided email is not valid, please provide a valid email");
+        }
+
+        var user = await context.Users.Include(u => u.LastIssuedOtp).SingleOrDefaultAsync(u => u.Email == email);
+        
+        var lastIssuedOtp = user?.LastIssuedOtp;
+        if (lastIssuedOtp is null || code != lastIssuedOtp.Code)
+        {
+            return Result.Fail("Provided email or OTP is incorrect");
+        }
+
+        if (lastIssuedOtp.IsUsed)
+        {
+            return Result.Fail("Provided OTP has been used");
+        }
+
+        if (lastIssuedOtp.IsExpired)
+        {
+            return Result.Fail("Provided OTP has expired");
+        }
+
+        lastIssuedOtp.Use();
+        await context.SaveChangesAsync();
+        return Result.Ok();
     }
 
     private async Task<OneTimePin> CreateUserOneTimePinAsync(User user, string code)
@@ -107,7 +137,7 @@ public class OneTimePinService(OtpDbContext context) : IOneTimePinService
     }
 
     private bool CanReissueOtp(OneTimePin? otp) {
-        if (otp is null || otp.HasExpired)
+        if (otp is null || otp.IsUsed || otp.IsExpired)
             return false;            
 
         if (otp.RequestCount >= OTP_REISSUE_MAX)

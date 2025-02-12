@@ -18,7 +18,7 @@ public class OneTimePin
     public User User { get; set; } = null!;
 
     [NotMapped]
-    public bool HasExpired => IsUsed || DateTime.UtcNow > ExpiresAt;
+    public bool IsExpired => DateTime.UtcNow > ExpiresAt;
 
     public void SetExpiryDt(int expiresInSeconds)
     {
@@ -28,6 +28,12 @@ public class OneTimePin
     public void Expire()
     {
         IsUsed = true;
+    }
+
+    public void Use()
+    {
+        IsUsed = true;
+        UsedAt = DateTime.UtcNow;
     }
 
     public static OneTimePin Create(int userId, string code, int expiresInSeconds)
