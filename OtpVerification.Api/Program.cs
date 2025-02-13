@@ -16,9 +16,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("RestrictedCorsPolicy", policy =>
     {
-        policy.WithOrigins("https://scy-8080.entrostat.dev")
-        .AllowAnyHeader()
-        .AllowAnyMethod();
+        var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>(); 
+        policy
+            .WithOrigins(allowedOrigins!)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
