@@ -10,4 +10,7 @@ export class OneTimePinService {
 
   public send = (email: string): Observable<unknown> =>
     this.http.post('https://scy-8081.entrostat.dev/OneTimePin/Send', { email });
+
+  public validate = (data: { email: string, code: string }): Observable<unknown> =>
+    this.http.put('https://scy-8081.entrostat.dev/OneTimePin/Validate', data);
 }
