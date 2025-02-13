@@ -28,6 +28,10 @@ export class SendComponent implements OnDestroy {
   countdown = 0;
   errorMessage = "";
 
+  get email(): string {
+    return this.form.value.email;
+  }
+
   constructor(private destoryRef: DestroyRef) {
     this.form = new FormGroup({
       email: new FormControl('', [Validators.required, Validators.email])

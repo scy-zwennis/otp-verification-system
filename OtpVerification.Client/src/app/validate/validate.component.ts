@@ -1,20 +1,24 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { OneTimePinService } from '../services/one-time-pin.service';
 import { catchError, finalize } from 'rxjs';
 import { ErrorHelper } from '../helpers/error.helper';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { LoadingButtonDirective } from '../directives/loading-button.directive';
 
 @Component({
   selector: 'app-validate',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, LoadingButtonDirective],
   templateUrl: './validate.component.html',
   styleUrl: './validate.component.scss'
 })
-export class ValidateComponent {
+export class ValidateComponent implements OnInit {
   private oneTimePinService = inject(OneTimePinService);
+  private route = inject(ActivatedRoute);
+  private destoryRef = inject(DestroyRef);
 
   form: FormGroup;
   formSubmitted = false;
@@ -23,10 +27,17 @@ export class ValidateComponent {
   successMessage = "";
   errorMessage = "";
 
-  constructor(private destoryRef: DestroyRef) {
+  constructor() {
     this.form = new FormGroup({
       email: new FormControl('', [Validators.required, Validators.email]),
       code: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(6)])
+    });
+  }
+
+  ngOnInit(): void {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destoryRef)).subscribe(params => {
+      const email = params['email'] || '';
+      this.form.get('email')?.setValue(email);
     });
   }
 

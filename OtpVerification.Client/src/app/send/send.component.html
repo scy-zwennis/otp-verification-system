@@ -1,26 +1,26 @@
 <div class="card mx-auto mt-5" style="width: 25rem;">
   <div class="card-body">
     <h1 class="card-title text-center mb-4">OTP Verification</h1>
-      @if (!hasSentOtp)
-      {
-        <form [formGroup]="form">
-          <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input id="email" type="email" class="form-control" formControlName="email"
-            [class.is-invalid]="hasError('email')" />
-            @if (hasError('email'))
-            {
-              <div class="invalid-feedback">
-                <span>Please enter a valid email</span>
-              </div>
-            }
-          </div>
-        </form>
-        <div class="text-center">
-          <button [appLoadingButton]="isLoading" type="button" class="btn btn-primary mx-auto" (click)="requestOtp()" [disabled]="isLoading">
-              Submit
-          </button>
+    @if (!hasSentOtp)
+    {
+      <form [formGroup]="form">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input id="email" type="email" class="form-control" formControlName="email"
+          [class.is-invalid]="hasError('email')" />
+          @if (hasError('email'))
+          {
+            <div class="invalid-feedback">
+              <span>Please enter a valid email</span>
+            </div>
+          }
         </div>
+      </form>
+      <div class="text-center">
+        <button [appLoadingButton]="isLoading" type="button" class="btn btn-primary mx-auto" (click)="requestOtp()">
+            Submit
+        </button>
+      </div>
     }
     @else
     {
@@ -37,7 +37,7 @@
         }
         @else
         {
-          <button [appLoadingButton]="isLoading" type="button" class="btn btn-primary mx-auto" (click)="requestOtp()" [disabled]="isLoading">
+          <button [appLoadingButton]="isLoading" type="button" class="btn btn-primary mx-auto" (click)="requestOtp()">
             Resend
           </button>
         }
@@ -49,6 +49,9 @@
         {{errorMessage}}
       </div>
     }
-    <p class="text-center mb-0 mt-3">Already have a code? <a routerLink="/validate">Validate</a></p>
+    <p class="text-center mb-0 mt-3">
+      Already have a code?
+      <a routerLink="/validate" [queryParams]="hasSentOtp ? { email } : {}">Validate</a>
+    </p>
   </div>
 </div>
