@@ -1,41 +1,54 @@
 <div class="card mx-auto mt-5" style="width: 25rem;">
   <div class="card-body">
-    <form [formGroup]="form">
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input id="email" type="email" class="form-control" formControlName="email"
-          [class.is-invalid]="hasError('email')" />
-        @if (hasError('email'))
-        {
-        <div class="invalid-feedback">
-          <span>Please enter a valid email</span>
+    <h1 class="card-title text-center mb-4">OTP Verification</h1>
+      @if (!hasSentOtp)
+      {
+        <form [formGroup]="form">
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input id="email" type="email" class="form-control" formControlName="email"
+            [class.is-invalid]="hasError('email')" />
+            @if (hasError('email'))
+            {
+              <div class="invalid-feedback">
+                <span>Please enter a valid email</span>
+              </div>
+            }
+          </div>
+        </form>
+        <div class="text-center">
+          <button [appLoadingButton]="isLoading" type="button" class="btn btn-primary mx-auto" (click)="requestOtp()" [disabled]="isLoading">
+              Submit
+          </button>
         </div>
-        }
-      </div>
-    </form>
-    <div class="text-center">
-      <button type="button" class="btn btn-primary mx-auto" (click)="requestOtp()" [disabled]="isLoading || countdown > 0">
-        @if (isLoading)
+    }
+    @else
+    {
+      <div class="text-center">
+        <p>
+          One Time Pin (OTP) has been sent via email to<br/>
+          <b>{{ form.value.email }}</b>
+        </p>
+        @if (countdown > 0)
         {
-          <span class="spinner-grow spinner-grow-sm"></span>
+          <p class="mb-0">
+            <span class="text-secondary">Resend OTP in</span> {{ countdown * 1000 | date : 'mm:ss' }}
+          </p>
         }
         @else
         {
-          {{ isResending ? 'Resend' : 'Submit' }}
+          <button [appLoadingButton]="isLoading" type="button" class="btn btn-primary mx-auto" (click)="requestOtp()" [disabled]="isLoading">
+            Resend
+          </button>
         }
-      </button>
-    </div>
+      </div>
+    }
     @if (errorMessage)
     {
       <div class="alert alert-danger mt-3" role="alert">
         {{errorMessage}}
       </div>
     }
-    @else if (successMessage)
-    {
-      <div class="alert alert-success mt-3" role="alert">
-        {{successMessage}}
-      </div>
-    }
+    <p class="text-center mb-0 mt-3">Already have a code? <a routerLink="/validate">Validate</a></p>
   </div>
 </div>

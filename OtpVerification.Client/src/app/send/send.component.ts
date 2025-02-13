@@ -5,11 +5,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { OneTimePinService } from '../services/one-time-pin.service';
 import { catchError, finalize, Subject, takeUntil, timer } from 'rxjs';
 import { ErrorHelper } from '../helpers/error.helper';
+import { RouterModule } from '@angular/router';
+import { LoadingButtonDirective } from '../directives/loading-button.directive';
 
 @Component({
   selector: 'app-send',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, LoadingButtonDirective],
   templateUrl: './send.component.html',
   styleUrl: './send.component.scss'
 })
@@ -22,14 +24,9 @@ export class SendComponent implements OnDestroy {
   formSubmitted = false;
 
   isLoading = false;
-  hasSentOtpTo = "";
+  hasSentOtp = false;
   countdown = 0;
-  successMessage = "";
   errorMessage = "";
-
-  public get isResending(): boolean {
-    return this.form.value.email === this.hasSentOtpTo;
-  }
 
   constructor(private destoryRef: DestroyRef) {
     this.form = new FormGroup({
@@ -52,7 +49,6 @@ export class SendComponent implements OnDestroy {
 
     this.isLoading = true;
     this.errorMessage = '';
-    this.successMessage = '';
 
     this.oneTimePinService.send(email)
       .pipe(
@@ -63,8 +59,7 @@ export class SendComponent implements OnDestroy {
         finalize(() => this.isLoading = false),
         takeUntilDestroyed(this.destoryRef))
       .subscribe(() => {
-        this.successMessage = "OTP sent successfully";
-        this.hasSentOtpTo = email;
+        this.hasSentOtp = true;
         this.startCountdown();
       });
   }
