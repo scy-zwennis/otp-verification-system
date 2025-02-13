@@ -1,3 +1,4 @@
+using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 using OtpVerification.Api.Models;
 using OtpVerification.Api.Services.Interfaces;
@@ -19,7 +20,7 @@ public class OneTimePinController(IOneTimePinService oneTimePinService, IEmailin
         var result = await oneTimePinService.CreateOneTimePinAsync(model.Email);
         if (result.IsFailed)
         {
-            return BadRequest(result.Errors);
+            return BadRequest(FormatResultErrors(result.Errors));
         }
 
         var emailResult = emailingService.SendEmail(model.Email, "One Time Pin", CreateOneTimePinMessage(result.Value));
@@ -42,11 +43,16 @@ public class OneTimePinController(IOneTimePinService oneTimePinService, IEmailin
         var result = await oneTimePinService.ValidateOneTimePinAsync(model.Email, model.Code);
         return result.IsSuccess
             ? Ok()
-            : BadRequest(result.Errors);
+            : BadRequest(FormatResultErrors(result.Errors));
     }
 
     private string CreateOneTimePinMessage(string code)
     {
         return $"Your OTP is {code}";
+    }
+
+    private string FormatResultErrors(List<IError> errors)
+    {
+        return string.Join(" ", errors.Select(e => e.Message));
     }
 }
